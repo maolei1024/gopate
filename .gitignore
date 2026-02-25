@@ -1,0 +1,22 @@
+# Binaries
+gopate
+*.exe
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# C# origin (keep the docs/origin but ignore build artifacts)
+docs/origin/apate/bin/
+docs/origin/apate/obj/
+docs/origin/.vs/
