@@ -5,20 +5,16 @@ import (
 	"os"
 
 	"github.com/maolei1024/gopate/pkg/apate"
+	"github.com/maolei1024/gopate/pkg/i18n"
 	"github.com/spf13/cobra"
 )
 
 var inspectCmd = &cobra.Command{
-	Use:   "inspect [文件...]",
-	Short: "检测文件是否经过 apate/gopate 伪装",
-	Long: `分析文件是否经过 apate/gopate 伪装，并显示相关信息。
-
-示例:
-  gopate inspect file.mp4              # 检测单个文件
-  gopate inspect *.mp4                 # 批量检测
-  gopate inspect file.mp4 -v           # 显示详细信息（含原始文件头）`,
-	Args: cobra.MinimumNArgs(1),
-	RunE: runInspect,
+	Use:   i18n.T("inspect.use"),
+	Short: i18n.T("inspect.short"),
+	Long:  i18n.T("inspect.long"),
+	Args:  cobra.MinimumNArgs(1),
+	RunE:  runInspect,
 }
 
 func init() {
@@ -34,23 +30,23 @@ func runInspect(cmd *cobra.Command, args []string) error {
 	for _, filePath := range files {
 		result, err := apate.Inspect(filePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "检测失败: %s - %v\n", filePath, err)
+			fmt.Fprintf(os.Stderr, i18n.Tf("msg.inspect_failed", filePath, err)+"\n")
 			continue
 		}
 
 		if result.IsDisguised {
-			fmt.Printf("✅ %s - 已伪装\n", filePath)
-			fmt.Printf("   文件大小: %s\n", formatSize(result.FileSize))
-			fmt.Printf("   面具长度: %d 字节\n", result.MaskLength)
-			fmt.Printf("   伪装类型: %s\n", result.DetectedType)
+			fmt.Printf(i18n.Tf("msg.disguised_yes", filePath) + "\n")
+			fmt.Printf(i18n.Tf("msg.file_size", formatSize(result.FileSize)) + "\n")
+			fmt.Printf(i18n.Tf("msg.mask_length", result.MaskLength) + "\n")
+			fmt.Printf(i18n.Tf("msg.disguise_type", result.DetectedType) + "\n")
 			if verbose && len(result.OriginalHeader) > 0 {
-				fmt.Printf("   原始文件头: ")
+				fmt.Printf(i18n.T("msg.original_header"))
 				displayLen := len(result.OriginalHeader)
 				if displayLen > 32 {
 					displayLen = 32
 				}
-				for i := 0; i < displayLen; i++ {
-					fmt.Printf("%02X ", result.OriginalHeader[i])
+				for j := 0; j < displayLen; j++ {
+					fmt.Printf("%02X ", result.OriginalHeader[j])
 				}
 				if len(result.OriginalHeader) > 32 {
 					fmt.Printf("...")
@@ -58,8 +54,8 @@ func runInspect(cmd *cobra.Command, args []string) error {
 				fmt.Println()
 			}
 		} else {
-			fmt.Printf("❌ %s - 未检测到伪装\n", filePath)
-			fmt.Printf("   文件大小: %s\n", formatSize(result.FileSize))
+			fmt.Printf(i18n.Tf("msg.disguised_no", filePath) + "\n")
+			fmt.Printf(i18n.Tf("msg.file_size", formatSize(result.FileSize)) + "\n")
 		}
 	}
 

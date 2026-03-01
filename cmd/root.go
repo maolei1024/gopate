@@ -4,28 +4,23 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/maolei1024/gopate/pkg/i18n"
 	"github.com/spf13/cobra"
 )
 
 var (
 	verbose bool
 	quiet   bool
+	lang    string
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "gopate",
-	Short: "Gopate - 文件格式伪装工具 (Go CLI)",
-	Long: `Gopate 是一款基于 Go 语言的纯命令行文件格式伪装工具。
-完全兼容 apate (C# 版本) 的文件格式，支持跨平台使用。
-
-功能特性:
-  • 支持超大文件，瞬间伪装/还原
-  • 支持批量处理、递归目录
-  • 原始文件头经过加密处理，不易被检测
-  • 完全兼容 apate 伪装的文件，可混合使用`,
+	Short: i18n.T("root.short"),
+	Long:  i18n.T("root.long"),
 }
 
-// Execute 执行根命令
+// Execute executes the root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -34,6 +29,43 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "显示详细输出")
-	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "静默模式，仅显示错误")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, i18n.T("flag.verbose"))
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, i18n.T("flag.quiet"))
+	rootCmd.PersistentFlags().StringVar(&lang, "lang", "", i18n.T("flag.lang"))
+
+	cobra.OnInitialize(initLang)
+}
+
+// initLang handles the --lang flag by switching the language
+// and updating all command descriptions before help is displayed.
+func initLang() {
+	if lang != "" {
+		i18n.SetLanguage(lang)
+		updateCommandTexts()
+	}
+}
+
+// updateCommandTexts refreshes all cobra command text with current i18n language.
+func updateCommandTexts() {
+	// Root
+	rootCmd.Short = i18n.T("root.short")
+	rootCmd.Long = i18n.T("root.long")
+
+	// Disguise
+	disguiseCmd.Use = i18n.T("disguise.use")
+	disguiseCmd.Short = i18n.T("disguise.short")
+	disguiseCmd.Long = i18n.T("disguise.long")
+
+	// Reveal
+	revealCmd.Use = i18n.T("reveal.use")
+	revealCmd.Short = i18n.T("reveal.short")
+	revealCmd.Long = i18n.T("reveal.long")
+
+	// Inspect
+	inspectCmd.Use = i18n.T("inspect.use")
+	inspectCmd.Short = i18n.T("inspect.short")
+	inspectCmd.Long = i18n.T("inspect.long")
+
+	// Version
+	versionCmd.Short = i18n.T("version.short")
 }

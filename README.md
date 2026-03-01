@@ -1,23 +1,28 @@
 # Gopate
 
-**Gopate** 是一款基于 Go 语言的纯命令行文件格式伪装工具，能够简洁、快速地对文件进行格式伪装与还原。
+**Gopate** is a pure command-line file format disguise tool built with Go, enabling fast and simple file format disguise and restoration.
 
-> 本项目基于 [rippod/apate](https://github.com/rippod/apate) (C#) 重构而来，**完全兼容**其伪装文件格式，可混合使用。
+> This project is a rewrite of [rippod/apate](https://github.com/rippod/apate) (C#), **fully compatible** with its disguised file format and can be used interchangeably.
 
-## ✨ 特性
+## ✨ Features
 
-- 🚀 **极速处理** — 支持超大文件，瞬间伪装/还原
-- 🔒 **安全加密** — 原始文件头经过加密处理，不易被检测出原始格式
-- 🌍 **跨平台** — 支持 Linux / macOS / Windows
-- 🔄 **完全兼容** — 与 C# 版 apate 伪装的文件互通
-- 📦 **批量处理** — 支持 glob 通配符、递归目录处理
-- 🔍 **文件探测** — 检测文件是否经过伪装，查看原始文件头信息
-- 📋 **预览模式** — `--dry-run` 预览操作，不实际修改文件
-- 🛡️ **安全模式** — 默认生成新文件，`--in-place` 可选原地修改
+- 🚀 **Ultra-fast** — Handles large files instantly
+- 🔒 **Secure** — Original file headers are encrypted, making detection difficult
+- 🌍 **Cross-platform** — Supports Linux / macOS / Windows / FreeBSD
+- 🌐 **i18n** — Auto-detects terminal language, supports English & Chinese
+- 🔄 **Fully Compatible** — Interoperable with C# version apate
+- 📦 **Batch Processing** — Supports glob patterns and recursive directories
+- 🔍 **File Inspection** — Detect if files are disguised and view original headers
+- 📋 **Preview Mode** — `--dry-run` to preview operations without modifying files
+- 🛡️ **Safe Mode** — Creates new files by default, `--in-place` for in-place modification
 
-## 安装
+## Installation
 
-### 从源码编译
+### Download Pre-built Binaries
+
+Download the binary for your platform from the [Releases](https://github.com/maolei1024/gopate/releases) page.
+
+### Build from Source
 
 ```bash
 git clone https://github.com/maolei1024/gopate.git
@@ -25,105 +30,121 @@ cd gopate
 go build -o gopate .
 ```
 
-### 直接安装
+### Go Install
 
 ```bash
 go install github.com/maolei1024/gopate@latest
 ```
 
-##  使用说明
+## Usage
 
-### 伪装文件
+### Language Settings
+
+Gopate automatically detects your terminal language from environment variables (`LANG`, `LC_ALL`, etc.). English is the default language.
 
 ```bash
-# 一键伪装（默认模式，伪装为 MP4）
+# Force Chinese output
+gopate --lang zh --help
+
+# Force English output
+gopate --lang en --help
+
+# Or set via environment variable
+LANG=zh_CN.UTF-8 gopate --help
+```
+
+### Disguise Files
+
+```bash
+# One-key disguise (default mode, disguise as MP4)
 gopate disguise secret.zip
 
-# 伪装为指定格式
-gopate disguise secret.zip --mode exe    # 伪装为 EXE
-gopate disguise secret.zip --mode jpg    # 伪装为 JPG
-gopate disguise secret.zip --mode mp4    # 伪装为 MP4
-gopate disguise secret.zip --mode mov    # 伪装为 MOV
+# Disguise as specific format
+gopate disguise secret.zip --mode exe    # Disguise as EXE
+gopate disguise secret.zip --mode jpg    # Disguise as JPG
+gopate disguise secret.zip --mode mp4    # Disguise as MP4
+gopate disguise secret.zip --mode mov    # Disguise as MOV
 
-# 使用自定义面具文件
+# Use custom mask file
 gopate disguise secret.zip --mode mask --mask-file cover.png
 
-# 原地修改（不保留原文件）
+# In-place modification (no new file created)
 gopate disguise secret.zip --mode onekey --in-place
 
-# 批量处理
+# Batch processing
 gopate disguise *.zip --mode onekey --in-place
 
-# 递归处理目录
+# Recursive directory processing
 gopate disguise ./mydir -r --mode mp4 --in-place
 
-# 输出到指定目录
+# Output to specified directory
 gopate disguise secret.zip -o ./output/
 ```
 
-### 还原文件
+### Reveal Files
 
 ```bash
-# 还原文件（生成新文件）
+# Reveal a file (creates new file)
 gopate reveal secret.zip.mp4
 
-# 原地还原
+# In-place reveal
 gopate reveal secret.zip.mp4 --in-place
 
-# 跳过确认提示
+# Skip confirmation prompt
 gopate reveal secret.zip.mp4 --in-place -f
 
-# 批量还原
+# Batch reveal
 gopate reveal *.mp4 --in-place -f
 ```
 
-### 检测文件
+### Inspect Files
 
 ```bash
-# 检测文件是否经过伪装
+# Detect if a file is disguised
 gopate inspect suspicious.mp4
 
-# 显示详细信息（含原始文件头）
+# Show detailed info (with original header)
 gopate inspect suspicious.mp4 -v
 ```
 
-### 其他选项
+### Other Options
 
 ```bash
-gopate version          # 显示版本
-gopate --help           # 显示帮助
-gopate disguise --help  # 显示伪装命令帮助
+gopate version          # Show version
+gopate --help           # Show help
+gopate disguise --help  # Show disguise command help
 
-# 全局选项
--v, --verbose   显示详细输出
--q, --quiet     静默模式，仅显示错误
+# Global options
+-v, --verbose       Show verbose output
+-q, --quiet         Quiet mode, show errors only
+    --lang string   Set language (en, zh)
 ```
 
-##  伪装模式说明
+## Disguise Modes
 
-| 模式 | 说明 | 面具来源 |
-|------|------|----------|
-| `onekey` | 一键伪装为 MP4（默认，适用大部分场景） | 内嵌 MP4 文件 |
-| `mask` | 自定义面具文件伪装 | 用户指定文件 |
-| `exe` | 简易伪装为 EXE | PE 文件头 |
-| `jpg` | 简易伪装为 JPG | JPEG 文件头 |
-| `mp4` | 简易伪装为 MP4 | MP4 文件头 |
-| `mov` | 简易伪装为 MOV | MOV 文件头 |
+| Mode | Description | Mask Source |
+|------|-------------|-------------|
+| `onekey` | One-key disguise as MP4 (default, suitable for most cases) | Embedded MP4 file |
+| `mask` | Custom mask file disguise | User-specified file |
+| `exe` | Simple EXE disguise | PE file header |
+| `jpg` | Simple JPG disguise | JPEG file header |
+| `mp4` | Simple MP4 disguise | MP4 file header |
+| `mov` | Simple MOV disguise | MOV file header |
 
-##  注意事项
+## ⚠️ Important Notes
 
-1. **使用前请务必做好数据备份**
-2. 对未经伪装的文件执行还原操作可能导致文件损坏
-3. 本软件不得用于非法用途，使用者自行承担一切后果
+1. **Always back up your data before use**
+2. Revealing files that were not disguised may cause data corruption
+3. This software must not be used for illegal purposes; users bear all responsibility
 
-## 与 apate 的兼容性
+## Compatibility with apate
 
-Gopate 与 [apate](https://github.com/rippod/apate) (C# 版本 v1.4.2) 采用完全一致的二进制文件格式：
+Gopate is fully compatible with [apate](https://github.com/rippod/apate) (C# version v1.4.2) using an identical binary file format:
 
--  Gopate 伪装的文件可以用 apate 还原
--  apate 伪装的文件可以用 Gopate 还原
--  所有面具字节与 apate 逐字节一致
+- ✅ Files disguised by Gopate can be revealed by apate
+- ✅ Files disguised by apate can be revealed by Gopate
+- ✅ All mask bytes are byte-for-byte identical with apate
 
-##  许可证
+## License
 
-本项目基于 [MIT License](LICENSE) 开源。
+This project is open-sourced under the [MIT License](LICENSE).

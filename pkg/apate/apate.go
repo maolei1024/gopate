@@ -13,12 +13,12 @@ import (
 )
 
 var (
-	ErrFileTooSmall = errors.New("文件过小，无法还原")
-	ErrInvalidMask  = errors.New("面具数据无效（长度为0）")
-	ErrMaskTooLarge = errors.New("面具文件过大")
-	ErrNotDisguised = errors.New("文件未经过 apate 伪装，或已损坏")
-	ErrFileNotExist = errors.New("文件不存在")
-	ErrIsDirectory  = errors.New("目标是目录，不是文件")
+	ErrFileTooSmall = errors.New("file too small to reveal")
+	ErrInvalidMask  = errors.New("invalid mask data (length is 0)")
+	ErrMaskTooLarge = errors.New("mask file too large")
+	ErrNotDisguised = errors.New("file is not disguised by apate, or is corrupted")
+	ErrFileNotExist = errors.New("file does not exist")
+	ErrIsDirectory  = errors.New("target is a directory, not a file")
 )
 
 // InspectResult 包含对伪装文件的分析结果
@@ -46,7 +46,7 @@ func Disguise(filePath string, maskHead []byte) error {
 		if os.IsNotExist(err) {
 			return ErrFileNotExist
 		}
-		return fmt.Errorf("获取文件信息失败: %w", err)
+		return fmt.Errorf("failed to get file info: %w", err)
 	}
 	if fi.IsDir() {
 		return ErrIsDirectory
@@ -54,7 +54,7 @@ func Disguise(filePath string, maskHead []byte) error {
 
 	f, err := os.OpenFile(filePath, os.O_RDWR, 0)
 	if err != nil {
-		return fmt.Errorf("打开文件失败: %w", err)
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer f.Close()
 
@@ -68,13 +68,13 @@ func Disguise(filePath string, maskHead []byte) error {
 	originalHead := make([]byte, headLen)
 	_, err = f.ReadAt(originalHead, 0)
 	if err != nil {
-		return fmt.Errorf("读取原始文件头失败: %w", err)
+		return fmt.Errorf("failed to read original file header: %w", err)
 	}
 
 	// 在文件头写入面具字节
 	_, err = f.WriteAt(maskHead, 0)
 	if err != nil {
-		return fmt.Errorf("写入面具失败: %w", err)
+		return fmt.Errorf("failed to write mask: %w", err)
 	}
 
 	// 准备追加数据：逆序原始文件头 + 面具长度标记
@@ -92,7 +92,7 @@ func Disguise(filePath string, maskHead []byte) error {
 	}
 	_, err = f.WriteAt(appendData, writePos)
 	if err != nil {
-		return fmt.Errorf("追加数据到文件末尾失败: %w", err)
+		return fmt.Errorf("failed to append data to file: %w", err)
 	}
 
 	return nil
@@ -103,10 +103,10 @@ func DisguiseToFile(srcPath, dstPath string, maskHead []byte) error {
 	// 复制源文件到目标路径
 	data, err := os.ReadFile(srcPath)
 	if err != nil {
-		return fmt.Errorf("读取源文件失败: %w", err)
+		return fmt.Errorf("failed to read source file: %w", err)
 	}
 	if err := os.WriteFile(dstPath, data, 0644); err != nil {
-		return fmt.Errorf("写入目标文件失败: %w", err)
+		return fmt.Errorf("failed to write destination file: %w", err)
 	}
 	// 对目标文件进行伪装
 	return Disguise(dstPath, maskHead)
@@ -124,7 +124,7 @@ func Reveal(filePath string) error {
 		if os.IsNotExist(err) {
 			return ErrFileNotExist
 		}
-		return fmt.Errorf("获取文件信息失败: %w", err)
+		return fmt.Errorf("failed to get file info: %w", err)
 	}
 	if fi.IsDir() {
 		return ErrIsDirectory
@@ -137,7 +137,7 @@ func Reveal(filePath string) error {
 
 	f, err := os.OpenFile(filePath, os.O_RDWR, 0)
 	if err != nil {
-		return fmt.Errorf("打开文件失败: %w", err)
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer f.Close()
 
@@ -145,7 +145,7 @@ func Reveal(filePath string) error {
 	maskLenBytes := make([]byte, MaskLengthIndicatorLength)
 	_, err = f.ReadAt(maskLenBytes, fileSize-int64(MaskLengthIndicatorLength))
 	if err != nil {
-		return fmt.Errorf("读取面具长度标记失败: %w", err)
+		return fmt.Errorf("failed to read mask length indicator: %w", err)
 	}
 	maskHeadLength := int(binary.LittleEndian.Uint32(maskLenBytes))
 
@@ -173,20 +173,20 @@ func Reveal(filePath string) error {
 		_, err = f.ReadAt(originalHead, int64(maskHeadLength))
 	}
 	if err != nil {
-		return fmt.Errorf("读取原始文件头失败: %w", err)
+		return fmt.Errorf("failed to read original file header: %w", err)
 	}
 
 	// 截断文件末尾多余部分
 	err = f.Truncate(fileSize - int64(maskHeadLength) - int64(MaskLengthIndicatorLength))
 	if err != nil {
-		return fmt.Errorf("截断文件失败: %w", err)
+		return fmt.Errorf("failed to truncate file: %w", err)
 	}
 
 	// 写回逆序还原的原始文件头
 	restoredHead := reverseBytes(originalHead)
 	_, err = f.WriteAt(restoredHead, 0)
 	if err != nil {
-		return fmt.Errorf("写回原始文件头失败: %w", err)
+		return fmt.Errorf("failed to write back original file header: %w", err)
 	}
 
 	return nil
@@ -196,10 +196,10 @@ func Reveal(filePath string) error {
 func RevealToFile(srcPath, dstPath string) error {
 	data, err := os.ReadFile(srcPath)
 	if err != nil {
-		return fmt.Errorf("读取源文件失败: %w", err)
+		return fmt.Errorf("failed to read source file: %w", err)
 	}
 	if err := os.WriteFile(dstPath, data, 0644); err != nil {
-		return fmt.Errorf("写入目标文件失败: %w", err)
+		return fmt.Errorf("failed to write destination file: %w", err)
 	}
 	return Reveal(dstPath)
 }
@@ -211,7 +211,7 @@ func Inspect(filePath string) (*InspectResult, error) {
 		if os.IsNotExist(err) {
 			return nil, ErrFileNotExist
 		}
-		return nil, fmt.Errorf("获取文件信息失败: %w", err)
+		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
 	if fi.IsDir() {
 		return nil, ErrIsDirectory
@@ -229,7 +229,7 @@ func Inspect(filePath string) (*InspectResult, error) {
 
 	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("打开文件失败: %w", err)
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer f.Close()
 
